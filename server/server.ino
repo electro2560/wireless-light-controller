@@ -40,8 +40,7 @@
 byte incomingByte[MAX_CHANNELS];
 
 //Uses SPI bus + two digital pins for chip enable (CE) and chip select (CSN)
-RF24 radio(7, 8);
-//RF24 radio(9, 10);
+RF24 radio(9, 10);
 
 //An address use by the transmitter and receiver
 //Changing this address would allow multiple vixen server instances to control
@@ -52,7 +51,7 @@ void setup() {
   Serial.begin(115200);
 
   radio.begin();
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_MAX);
   radio.setDataRate(RF24_2MBPS);
   radio.setChannel(124);
   radio.openWritingPipe(addresses[0]);

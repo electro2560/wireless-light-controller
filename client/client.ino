@@ -88,7 +88,7 @@ void setup() {
   Serial.begin(115200);
 
   radio.begin();
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_MAX);
   radio.setDataRate(RF24_2MBPS);
   radio.setChannel(124);
   radio.openReadingPipe(1, addresses[0]);
@@ -114,7 +114,7 @@ void setup() {
 
 void loop() {
 
-  if ( radio.available()) {
+  if (radio.available()) {
 
     while (radio.available()) {
       radio.read(&incomingByte, sizeof(byte) * MAX_CHANNELS);
