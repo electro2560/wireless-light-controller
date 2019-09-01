@@ -24,7 +24,7 @@
 
   created 26 August 2019
   by Mitchell Sulkowski
-  modified 30 August 2019
+  modified 1 September 2019
   by Mitchell Sulkowski
 
   https://github.com/electro2560/wireless-light-controller
@@ -32,6 +32,7 @@
 #include "Arduino.h"
 #include <SPI.h>
 #include <RF24.h>
+#include "pins_arduino.h"
 
 //How many channels Vixen will control. This number should be at least the number of channels
 //as defined in your server transmitting.
@@ -46,14 +47,20 @@ byte incomingByte[MAX_CHANNELS];
 #define START_ADDRESS 0
 
 //Vixen outputs a byte value, 0 - 255, but we are using lights AC lights that can only be on or off so 
-//if the value passes this threshold, the light will turn on.
-#define threshold 120
+//if the value reaches this threshold, the light will turn on.
+#define threshold 128
 
 /*
  * Define SHIFT_REGISTER or PINS depending on how you want to control your lights
  */
 #define SHIFT_REGISTER
 //#define PINS
+
+/*
+ * If using pins and AC lights, only enable PWM if you are using zero crossing relays.
+ * PWM will only work for PWM pins. Any non-PWM pins will act as digital according to the threshold set above.
+ */
+#define USE_PWM false
 
 /*
  * Define ACTIVE_HIGH or ACTIVE_LOW depending on which relays you're using.
@@ -84,8 +91,10 @@ RF24 radio(9, 10);
 //differents sets of clients while still operating on the nRF channel.
 byte addresses[][6] = {"Vixen1"};
 
+const bool debug = false;
+
 void setup() {
-  Serial.begin(115200);
+  if(debug) Serial.begin(115200);
 
   radio.begin();
   radio.setPALevel(RF24_PA_MAX);
@@ -120,22 +129,35 @@ void loop() {
       radio.read(&incomingByte, sizeof(byte) * MAX_CHANNELS);
     }
 
-    Serial.println("Received: ");
+    if(debug) Serial.println("Received: ");
     for (int i = START_ADDRESS; i < START_ADDRESS + CHANNELS; i++) {
       byte brightness = incomingByte[i];
       int address = i - START_ADDRESS;
+    
+      if(debug) {
+        Serial.print(address);
+        Serial.print(": ");
+        Serial.println(brightness);
+      }
       
-      Serial.print(address);
-      Serial.print(": ");
-      Serial.println(brightness);
-
       bool output = getValue(brightness);
       
       #ifdef SHIFT_REGISTER
         sr.set(address, output);
       #endif
       #ifdef PINS
-        digitalWrite(outputs[address], output);
+        uint8_t pin = outputs[address];
+        
+        if(USE_PWM && supportsPWM(pin)){
+          #ifdef ACTIVE_HIGH
+           analogWrite(pin, brightness); 
+          #endif
+          #ifdef ACTIVE_LOW
+           analogWrite(pin, 255 - brightness); 
+          #endif
+        }else{
+          digitalWrite(pin, output);
+        }
       #endif
 
     }
@@ -158,4 +180,13 @@ bool getValue(byte brightness){
     if(output) return false;
     return true;
   #endif
+}
+
+/*
+ * The pins_arduino.h has a list of which pins support PWM for the processor selected during compilation.
+ * PWM pins are defined by which timer they use internally on the processor. Digital pins are defined
+ * as NOT_ON_TIMER.
+ */
+bool supportsPWM(uint8_t pin) {
+  return digitalPinToTimer(pin) != NOT_ON_TIMER;
 }
