@@ -5,7 +5,7 @@
   Vixen orchestrates light show by sending serial data over USB to the
   arduino. For convenience, this solution allows the computer running
   Vixen to be located indoors and wirelessly communicates to
-  client light controllers throgh nRF2401 modules.
+  client light controllers throgh nRF24L01 modules.
 
   Hardware used:
   - Ardino Nano V3 development board
@@ -24,7 +24,7 @@
 
   created 26 August 2019
   by Mitchell Sulkowski
-  modified 1 September 2019
+  modified 2 September 2019
   by Mitchell Sulkowski
 
   https://github.com/electro2560/wireless-light-controller
@@ -86,9 +86,11 @@ byte incomingByte[MAX_CHANNELS];
 //Uses SPI bus + two digital pins for chip enable (CE) and chip select (CSN)
 RF24 radio(9, 10);
 
-//An address use by the transmitter and receiver
-//Changing this address would allow multiple vixen server instances to control
-//differents sets of clients while still operating on the nRF channel.
+/*
+ * An address used by the transmitter and receiver.
+ * Changing this address would allow multiple vixen server instances to control
+ * differents sets of clients while still operating on the nRF channel.
+ */
 byte addresses[][6] = {"Vixen1"};
 
 const bool debug = false;
@@ -103,22 +105,21 @@ void setup() {
   radio.openReadingPipe(1, addresses[0]);
   radio.startListening();
 
-//All outputs off
-#ifdef SHIFT_REGISTER
-  #ifdef ACTIVE_HIGH
-  sr.setAllLow();
-  #endif
+  //All outputs off
+  #ifdef SHIFT_REGISTER
+    #ifdef ACTIVE_HIGH
+    sr.setAllLow();
+    #endif
   #ifdef ACTIVE_LOW
-  sr.setAllHigh();
+    sr.setAllHigh();
+    #endif
   #endif
-#endif
-#ifdef PINS
-  for(const int channel : outputs){
-    pinMode(channel, OUTPUT);
-    digitalWrite(channel, getValue(0));
-  }
-#endif
-
+  #ifdef PINS
+    for(const int channel : outputs){
+      pinMode(channel, OUTPUT);
+      digitalWrite(channel, getValue(0));
+    }
+  #endif
 }
 
 void loop() {
