@@ -12,7 +12,7 @@ Listens to Vixen lighting software as a generic serial controller.
   - Arduino Nano V3 terminal adapter board
   - 8 & 4 channel solid state relay modules (high level trigger)
   - AC 120V to DC 5V 700mA power supplies
-  - 16 channel CD74HC4067 MUX
+  - 74HC595 shift registers
 
   Uses the RF24 library: https://github.com/nRF24/RF24
   Vixen lighting software: http://www.vixenlights.com/
