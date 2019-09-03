@@ -5,7 +5,7 @@ Listens to Vixen lighting software as a generic serial controller.
   Vixen orchestrates light show by sending serial data over USB to the
   arduino. For convenience, this solution allows the computer running
   Vixen to be located indoors and wirelessly communicates to
-  client light controllers throgh nRF2401 modules.
+  client light controllers throgh nRF24L01 modules.
 
   Hardware used:
   - Ardino Nano V3 development board
