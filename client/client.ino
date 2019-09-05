@@ -13,6 +13,7 @@
   - 8 & 4 channel solid state relay modules (high level trigger)
   - AC 120V to DC 5V 700mA power supplies
   - 74HC595 shift registers
+  - nRF24L01 modules
 
   Uses the RF24 library: https://github.com/nRF24/RF24
   Vixen lighting software: http://www.vixenlights.com/
@@ -24,7 +25,7 @@
 
   created 26 August 2019
   by Mitchell Sulkowski
-  modified 2 September 2019
+  modified 3 September 2019
   by Mitchell Sulkowski
 
   https://github.com/electro2560/wireless-light-controller
@@ -93,6 +94,10 @@ RF24 radio(9, 10);
  */
 byte addresses[][6] = {"Vixen1"};
 
+/*
+ * Debug mode should be false if you are not using it for testing purposes because
+ * it will slow down the response of the lights and sometimes may fail to active.
+ */
 const bool debug = false;
 
 void setup() {

@@ -13,6 +13,7 @@
   - 8 & 4 channel solid state relay modules (high level trigger)
   - AC 120V to DC 5V 700mA power supplies
   - 74HC595 shift registers
+  - nRF24L01 modules
 
   Uses the RF24 library: https://github.com/nRF24/RF24
   Vixen lighting software: http://www.vixenlights.com/
