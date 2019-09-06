@@ -47,13 +47,13 @@ The nRF24L01 uses the SPI bus of the Arduino. In this example, an Arduino Nano v
 ### Building the receiver
 The receiver is a client to the transmitter which listens for instruction of its light channels. There are multiple ways of controlling your lights depending on which you are using. The following schematics vary in how many lights they control, however they all share the use of an nrf24L01 to receive data from the transmitter.
 
-> A 16 channel controller using 2 shift registers.
+> 16 channel controller using 2 shift registers.
 ![16 Channel Receiver](img/16_channel_receiver.jpg?raw=true "16 Channel Receiver")
 
-> An 8 channel controller using 1 shift register.
+> 8 channel controller using 1 shift register.
 ![8 Channel Receiver](img/8_channel_receiver.jpg?raw=true "8 Channel Receiver")
 
-> A 4 channel controller using pins directly from the Arduino.
+> 4 channel controller using pins directly from the Arduino.
 ![4 Channel Receiver](img/4_channel_receiver.jpg?raw=true "4 Channel Receiver")
 
 #### Dimming Lights
@@ -68,26 +68,34 @@ For lights which operate on DC, you must use solid state relays which support DC
 ### Step 1
 > Download and install [Vixen lights](http://www.vixenlights.com/)
 ### Step 2
-> Once you have launched Vixen, you will be greeted with this start menu. From here we will need to setup a display.
+> Once you have launched Vixen, you will be greeted with this start menu. From here we will need to setup a display.\
 ![Vixen start menu](img/vixen_start_menu.jpg?raw=true "Vixen start menu")
 ### Step 3
-> To setup our display, select Generic Serial from the drop down menu and click the plus mark to add it.
-![Add generic serial](img/vixen_generic_serial.jpg?raw=true "Add generic serial")
-> You may assign it any controller name.
+> To setup our display, select Generic Serial from the drop down menu and click the plus mark to add it.\
+![Add generic serial](img/vixen_add_controller.jpg?raw=true "Add generic serial")
+
+> You may assign it any controller name.\
 ![Assign controller name](img/vixen_controller_name.jpg?raw=true "Assign controller name")
-> The number outputs should be the amount of lights you plan on your clients controlling.
+
+> The number outputs should be the amount of lights you plan on your clients controlling.\
 ![Outputs](img/vixen_outputs.jpg?raw=true "Outputs")
 ### Step 4
-> With your transmitting Arduino connected to your computer over USB, we now need to select the serial port Vixen will send the light values to. Select your controller and open the options view through the gear icon.
+> With your transmitting Arduino connected to your computer over USB, we now need to select the serial port Vixen will send the light values to. Select your controller and open the options view through the gear icon.\
+![Serial port settings](img/vixen_serial_port_settings.jpg?raw=true "Serial port settings")
 
-> Select the serial port of your Arduino and set the baud rate to 115200. Click OK to get back to the controller options view.
+> Select the serial port of your Arduino and set the baud rate to 115200. Click OK to get back to the controller options view.\
+![Vixen buad rate](img/vixen_baud_rate.jpg?raw=true "Baud rate")
 
-> Again at the controller options view, check to send a text header and set it to `>`. That is the header the transmitter will use to keep in sync with the channels Vixen sends over serial.
+> Again at the controller options view, check to send a text header and set it to `>`. That is the header the transmitter will use to keep in sync with the channels Vixen sends over serial.\
+![Text header](img/vixen_text_header.jpg?raw=true "Text header")
 
-> Back at the display setup, add a generic numbered group. The group name may be anything you'd like. The item prefix will be used to identify each channel. Ex: If Outlet was the prefix, you would have a channel called Outlet-1, Outlet-2, etc.
+> Back at the display setup, add a generic numbered group. The group name may be anything you'd like. The item prefix will be used to identify each channel. Ex: If Outlet was the prefix, you would have a channel called Outlet-1, Outlet-2, etc.\
+![Add generic numbered group](img/vixen_add_generic_numbered_group.jpg?raw=true "Add generic numbered group")\
+![Group outputs](img/vixen_generic_numbered_group_outputs.jpg?raw=true "Group outputs")
 
-> With your controller and group of elements selected, you can now click the Patch Elements button at the bottom of the screen to assign those elements to the controller.
-
+> With your controller and group of elements selected, you can now click the Patch Elements button at the bottom of the screen to assign those elements to the controller.\
+![Patch elements](img/vixen_patch_elements.jpg?raw=true "Patch elements")\
+![Patch complete](img/vixen_patch_complete.jpg?raw=true "Patch complete")
 ### Step 5
 > Now that your display is setup, you can create a new sequence and start programming your light show.
 
@@ -101,12 +109,12 @@ Optionally you may change the address the nRF24L01 module which is explained in 
 ## Programming the receivers
 The receivers have far more options than the server requires. Open the client.ino to configure and upload the code to your receivers.
 
-`MAX_CHANNELS` should be set to match your 
-`CHANNELS` is how many lights this receiver controls
-`START_ADDRESS` is the first channel of this receiver. This allows one receiver to work with channels 0-15 and a separate receiver to control channels 16-23 for example. The first channel of Vixen uses the start address 0.
+`MAX_CHANNELS` should be set to match your\
+`CHANNELS` is how many lights this receiver controls\
+`START_ADDRESS` is the first channel of this receiver. This allows one receiver to work with channels 0-15 and a separate receiver to control channels 16-23 for example. The first channel of Vixen uses the start address 0.\
 `threshold` is the point where the output should enable. Vixen can fade lights so it outputs a brightness of 0-255 for each light. If you're not using PWM capable relays, this threshold is used to determine at which point the light should be on or off.
 
-There are 2 ways to control your outputs: `SHIFT_REGISTER` or `PINS`
+There are 2 ways to control your outputs: `SHIFT_REGISTER` or `PINS`\
 Define which one you will be using on this receiver. If you wish to use PWM, you must use `PINS` and set `USE_PWM` to true. With AC loads, you can only use PWM with supported relay boards that provide the Arduino with a zero-cross output.
 
 Define either `ACTIVE_HIGH` or `ACTIVE_LOW` depending on which relays you're using.
