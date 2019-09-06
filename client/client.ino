@@ -96,7 +96,7 @@ byte addresses[][6] = {"Vixen1"};
 
 /*
  * Debug mode should be false if you are not using it for testing purposes because
- * it will slow down the response of the lights and sometimes may fail to active.
+ * it will slow down the response of the lights and sometimes they may fail to active.
  */
 const bool debug = false;
 
