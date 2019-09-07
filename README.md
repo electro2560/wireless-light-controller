@@ -127,4 +127,9 @@ If you are using different pins than 9 and 10 for the CE and CSN pins, you will 
 
 Your address of all clients must match the address used by the transmitter.
 
+![Receiver configuration](img/arduino_receiver_configuration.jpg?raw=true "Receiver configuration")
+
 ## Creating a Vixen light sequence
+
+
+## Demo videos
