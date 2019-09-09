@@ -130,6 +130,6 @@ Your address of all clients must match the address used by the transmitter.
 ![Receiver configuration](img/arduino_receiver_configuration.jpg?raw=true "Receiver configuration")
 
 ## Creating a Vixen light sequence
-
+Once you have finished the setup of your hardware, you are ready to start creating your lighting sequence. To do this, begin with opening a New Sequence. This may be named anything you'd like.
 
 ## Demo videos
