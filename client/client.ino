@@ -25,7 +25,7 @@
 
   created 26 August 2019
   by Mitchell Sulkowski
-  modified 3 September 2019
+  modified 9 September 2019
   by Mitchell Sulkowski
 
   https://github.com/electro2560/wireless-light-controller
