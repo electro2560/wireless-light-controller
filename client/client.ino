@@ -25,7 +25,7 @@
 
   created 26 August 2019
   by Mitchell Sulkowski
-  modified 9 September 2019
+  modified 12 September 2019
   by Mitchell Sulkowski
 
   https://github.com/electro2560/wireless-light-controller
@@ -34,6 +34,9 @@
 #include <SPI.h>
 #include <RF24.h>
 #include "pins_arduino.h"
+
+#include "Group.h"
+#include "PinGroup.cpp"
 
 //How many channels Vixen will control. This number should be at least the number of channels
 //as defined in your server transmitting.
@@ -55,7 +58,7 @@ byte incomingByte[MAX_CHANNELS];
  * Define SHIFT_REGISTER or PINS depending on how you want to control your lights
  */
 #define SHIFT_REGISTER
-//#define PINS
+#define PINS
 
 /*
  * If using pins and AC lights, only enable PWM if you are using zero crossing relays.
@@ -110,6 +113,9 @@ void setup() {
   radio.openReadingPipe(1, addresses[0]);
   radio.startListening();
 
+  PinGroup *simpleGroup = new PinGroup(4, 0, true, outputs, ACTIVE_LOW);
+
+  
   //All outputs off
   #ifdef SHIFT_REGISTER
     #ifdef ACTIVE_HIGH
