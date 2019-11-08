@@ -132,4 +132,9 @@ Your address of all clients must match the address used by the transmitter.
 ## Creating a Vixen light sequence
 Once you have finished the setup of your hardware, you are ready to start creating your lighting sequence. To do this, begin with opening a New Sequence. This may be named anything you'd like.
 
+## Pictures
+![Picture 1](img/picture_1.jpg?raw=true "Picture 1")
+![Picture 2](img/picture_2.jpg?raw=true "Picture 2")
+![Picture 3](img/picture_3.jpg?raw=true "Picture 3")
+
 ## Demo videos
