@@ -47,25 +47,36 @@ byte incomingByte[MAX_CHANNELS];
 #define CHANNELS 16
 #define START_ADDRESS 0
 
-//Vixen outputs a byte value, 0 - 255, but we are using lights AC lights that can only be on or off so 
+//Vixen outputs a byte value, 0 - 255, but we are using lights AC lights that can only be on or off so
 //if the value reaches this threshold, the light will turn on.
 #define threshold 128
 
 /*
- * Define SHIFT_REGISTER or PINS depending on how you want to control your lights
- */
+   Define SHIFT_REGISTER or PINS depending on how you want to control your lights
+*/
 #define SHIFT_REGISTER
 //#define PINS
 
 /*
- * If using pins and AC lights, only enable PWM if you are using zero crossing relays.
- * PWM will only work for PWM pins. Any non-PWM pins will act as digital according to the threshold set above.
- */
+   PWM will only work with DC loads. If you are controlling AC loads, you must define AC_DIMMING instead.
+   PWM will only work for PWM pins. Any non-PWM pins will act as digital according to the threshold set above.
+*/
 #define USE_PWM false
 
 /*
- * Define ACTIVE_HIGH or ACTIVE_LOW depending on which relays you're using.
- */
+   AC dimming will only work for AC loads. You must be using solid state relays and must provide an Arduino
+   interrupt pin with zero cross detection from the AC cycle. Some relay boards such as the RobotDyn AC Light
+   Dimmer provide this zero cross detection. AC dimming requires the use of direct pins from the Arduino.
+*/
+#define AC_DIMMING false
+
+
+int AC_LOAD = 3;    // Output to Opto Triac pin
+int dimming = 128;  // Dimming level (0-128)  0 = ON, 128 = OFF
+
+/*
+   Define ACTIVE_HIGH or ACTIVE_LOW depending on which relays you're using.
+*/
 //#define ACTIVE_HIGH
 #define ACTIVE_LOW
 
@@ -88,20 +99,20 @@ byte incomingByte[MAX_CHANNELS];
 RF24 radio(9, 10);
 
 /*
- * An address used by the transmitter and receiver.
- * Changing this address would allow multiple vixen server instances to control
- * differents sets of clients while still operating on the nRF channel.
- */
+   An address used by the transmitter and receiver.
+   Changing this address would allow multiple vixen server instances to control
+   differents sets of clients while still operating on the nRF channel.
+*/
 byte addresses[][6] = {"Vixen1"};
 
 /*
- * Debug mode should be false if you are not using it for testing purposes because
- * it will slow down the response of the lights and sometimes they may fail to active.
- */
+   Debug mode should be false if you are not using it for testing purposes because
+   it will slow down the response of the lights and sometimes they may fail to active.
+*/
 const bool debug = false;
 
 void setup() {
-  if(debug) Serial.begin(115200);
+  if (debug) Serial.begin(115200);
 
   radio.begin();
   radio.setPALevel(RF24_PA_MAX);
@@ -113,18 +124,23 @@ void setup() {
   //All outputs off
   #ifdef SHIFT_REGISTER
     #ifdef ACTIVE_HIGH
-    sr.setAllLow();
+      sr.setAllLow();
     #endif
-  #ifdef ACTIVE_LOW
-    sr.setAllHigh();
+    #ifdef ACTIVE_LOW
+      sr.setAllHigh();
     #endif
   #endif
   #ifdef PINS
-    for(const int channel : outputs){
+    for (const int channel : outputs) {
       pinMode(channel, OUTPUT);
       digitalWrite(channel, getValue(0));
     }
   #endif
+
+  if (AC_DIMMING) {
+    pinMode(AC_LOAD, OUTPUT);// Set AC Load pin as output
+    attachInterrupt(0, zero_crosss_int, RISING);  // Choose the zero cross interrupt # from the table above
+  }
 }
 
 void loop() {
@@ -135,36 +151,36 @@ void loop() {
       radio.read(&incomingByte, sizeof(byte) * MAX_CHANNELS);
     }
 
-    if(debug) Serial.println("Received: ");
+    if (debug) Serial.println("Received: ");
     for (int i = START_ADDRESS; i < START_ADDRESS + CHANNELS; i++) {
       byte brightness = incomingByte[i];
       int address = i - START_ADDRESS;
-    
-      if(debug) {
+
+      if (debug) {
         Serial.print(address);
         Serial.print(": ");
         Serial.println(brightness);
       }
-      
+
       bool output = getValue(brightness);
-      
-      #ifdef SHIFT_REGISTER
-        sr.set(address, output);
+
+  #ifdef SHIFT_REGISTER
+    sr.set(address, output);
+  #endif
+  #ifdef PINS
+    uint8_t pin = outputs[address];
+
+    if (USE_PWM && supportsPWM(pin)) {
+      #ifdef ACTIVE_HIGH
+        analogWrite(pin, brightness);
       #endif
-      #ifdef PINS
-        uint8_t pin = outputs[address];
-        
-        if(USE_PWM && supportsPWM(pin)){
-          #ifdef ACTIVE_HIGH
-           analogWrite(pin, brightness); 
-          #endif
-          #ifdef ACTIVE_LOW
-           analogWrite(pin, 255 - brightness); 
-          #endif
-        }else{
-          digitalWrite(pin, output);
-        }
-      #endif
+    #ifdef ACTIVE_LOW
+      analogWrite(pin, 255 - brightness);
+    #endif
+      } else {
+        digitalWrite(pin, output);
+      }
+  #endif
 
     }
 
@@ -172,27 +188,46 @@ void loop() {
 
 }
 
-bool getValue(byte brightness){
+bool getValue(byte brightness) {
 
   bool output = false;
-  
-  if(brightness > threshold) output = true;
-  
-  #ifdef ACTIVE_HIGH
-    if(output) return true;
-    return false;
-  #endif
-  #ifdef ACTIVE_LOW
-    if(output) return false;
-    return true;
-  #endif
+
+  if (brightness > threshold) output = true;
+
+#ifdef ACTIVE_HIGH
+  if (output) return true;
+  return false;
+#endif
+#ifdef ACTIVE_LOW
+  if (output) return false;
+  return true;
+#endif
 }
 
 /*
- * The pins_arduino.h has a list of which pins support PWM for the processor selected during compilation.
- * PWM pins are defined by which timer they use internally on the processor. Digital pins are defined
- * as NOT_ON_TIMER.
- */
+   The pins_arduino.h has a list of which pins support PWM for the processor selected during compilation.
+   PWM pins are defined by which timer they use internally on the processor. Digital pins are defined
+   as NOT_ON_TIMER.
+*/
 bool supportsPWM(uint8_t pin) {
   return digitalPinToTimer(pin) != NOT_ON_TIMER;
+}
+
+
+//TODO: Make this work for multiple outputs
+//Use manufacturer's library https://github.com/RobotDynOfficial/RBDDimmer
+//zero_cross_int provided by https://github.com/tehniq3/ac-dimmer_with_triac/blob/54524e33f2e760ea9798577ab7894d5a33f41548/ac_dimmer_with_triac_fade_simple.ino#L42
+// the interrupt function must take no parameters and return nothing
+void zero_crosss_int()  // function to be fired at the zero crossing to dim the light
+{
+  // Firing angle calculation : 1 full 50Hz wave =1/50=20ms
+  // Every zerocrossing thus: (50Hz)-> 10ms (1/2 Cycle) For 60Hz => 8.33ms (10.000/120)
+  // 10ms=10000us
+  // (10000us - 10us) / 128 = 75 (Approx) For 60Hz =>65
+
+  int dimtime = (75 * dimming);  // For 60Hz =>65
+  delayMicroseconds(dimtime);    // Off cycle
+  digitalWrite(AC_LOAD, HIGH);   // triac firing
+  delayMicroseconds(10);         // triac On propogation delay (for 60Hz use 8.33)
+  digitalWrite(AC_LOAD, LOW);    // triac Off
 }
